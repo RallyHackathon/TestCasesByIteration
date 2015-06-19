@@ -42,6 +42,18 @@ Ext.define('CustomApp', {
                 },
                 {
                     xtype: 'rallygrid',
+                    itemId: 'testsBlockedGrid',
+                    title: '<B>Tests Blocked</B>',
+                    emptyText: 'No Blocked Test Cases',
+                    storeConfig: {
+                        model: 'TestCase',
+                        autoLoad: false
+                    },
+                    columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}],
+                    showPagingToolbar: false
+                },
+                {
+                    xtype: 'rallygrid',
                     itemId: 'testsNotRunGrid',
                     title: '<B>Tests Not Run</B>',
                     emptyText: 'No Test Cases that have not been run',
@@ -118,6 +130,7 @@ Ext.define('CustomApp', {
         this.down('#testsFailedGrid').getStore().loadData(testCasesByVerdictMap.Fail || []);
         this.down('#testsNotRunGrid').getStore().loadData(testCasesByVerdictMap.NotRun || []);
         this.down('#testsPassedGrid').getStore().loadData(testCasesByVerdictMap.Pass || []);
+        this.down('#testsBlockedGrid').getStore().loadData(testCasesByVerdictMap.Blocked || []);
     },
 
     _buildSummaryGridConfig: function() {
@@ -125,7 +138,11 @@ Ext.define('CustomApp', {
             extend: 'Ext.data.Model',
             fields: [
                 {name: 'Name',  type: 'string'},
-                {name: '_ref',  type: 'string'}
+                {name: '_ref',  type: 'string'},
+                {name: 'Pass', type: 'number'},
+                {name: 'Fail', type: 'number'},
+                {name: 'NotRun', type: 'number'},
+                {name: 'Blocked', type: 'number'},
             ]
         });
 
@@ -151,10 +168,28 @@ Ext.define('CustomApp', {
             emptyText: 'No In-Progress test cases for this project',
             columns: {
                 items: [
+                
                     {
                         text: 'Name',
                         dataIndex: 'Name'
+                    },
+                    {
+                        text: 'Failed',
+                        dataIndex: 'Fail'
+                    },
+                    {
+                        text: 'Blocked',
+                        dataIndex: 'Blocked'
+                    },
+                    {
+                        text: 'Not Run',
+                        dataIndex: 'NotRun'
+                    },
+                    {
+                        text: 'Passed',
+                        dataIndex: 'Pass'
                     }
+                    
                 ],
                 defaults: {
                     flex: 1
@@ -213,10 +248,20 @@ Ext.define('CustomApp', {
 
                 if (!results[iterationId]) {
                     results[iterationId] = iterationData;
-                }
+                } 
+
+                this._updateIterationVerdictCounts(testCase, results[iterationId]);
             }
             return results;
         }, {}, this);
+    },
+
+    _updateIterationVerdictCounts: function(testCase, iterationData) {
+        var lastVerdict = testCase.get('LastVerdict') || 'NotRun'; 
+        if (!iterationData[lastVerdict]) {
+            iterationData[lastVerdict] = 0;
+        }
+        iterationData[lastVerdict] += 1;
     }
 });
 
