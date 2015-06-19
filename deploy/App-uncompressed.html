@@ -74,7 +74,6 @@
         });
 
         this.add(this.testStatusSummary);
-        debugger;
 
         this._getTestResultData(toolbar.down('#projectCombo').getValue());
     },
@@ -109,11 +108,6 @@
             iterationSummary: _.values(testCaseByIterationMap)
         };
 
-        this._updateSummaryStoreWithData(testSummaryData);
-        this._updateDetailStoresWithData(this.testCaseRecords);
-    },
-
-    _updateSummaryStoreWithData: function(testSummaryData) {
         this.down('#summaryGrid').getStore().loadRawData(testSummaryData);
     },
 
@@ -136,7 +130,8 @@
         var iterationSummaryModel = Ext.define('IterationSummary', {
             extend: 'Ext.data.Model',
             fields: [
-                {name: 'Name',  type: 'string'}
+                {name: 'Name',  type: 'string'},
+                {name: '_ref',  type: 'string'}
             ]
         });
 
@@ -172,13 +167,16 @@
                 }
             },
             listeners: {
-                cellclick: function(){
-                    console.log('cell clicked!');
-                }
+                cellclick: this._onIterationClicked,
+                scope: this
             },
             columnLines: true,
             enableEditing: true
         };
+    },
+
+    _onIterationClicked: function(grid, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+        this._updateDetailStoresWithData(this.iterationTestCaseMap[record.get('_ref')]);
     },
 
     _updateTestResultData: function(projectRef) {
@@ -205,7 +203,7 @@
     },
 
     _groupResultsByIteration: function(testCaseRecords) {
-        this.iterationIdMap = {};
+        this.iterationTestCaseMap = {};
         return _.reduce(testCaseRecords, function(results, testCase) {
             if (testCase.get('WorkProduct') &&
                 testCase.get('WorkProduct').ScheduleState &&
@@ -214,9 +212,10 @@
                 var iterationData = testCase.get('WorkProduct').Iteration;
                 var iterationId = iterationData._ref;
 
-                if (!this.iterationIdMap[iterationId]) {
-                    this.iterationIdMap[iterationId] = iterationData;
+                if (!this.iterationTestCaseMap[iterationId]) {
+                    this.iterationTestCaseMap[iterationId] = [];
                 }
+                this.iterationTestCaseMap[iterationId].push(testCase);
 
                 if (!results[iterationId]) {
                     results[iterationId] = iterationData;

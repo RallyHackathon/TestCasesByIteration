@@ -167,7 +167,6 @@ Ext.define('CustomApp', {
     },
 
     _onIterationClicked: function(grid, td, cellIndex, record, tr, rowIndex, e, eOpts) {
-        debugger;
         this._updateDetailStoresWithData(this.iterationTestCaseMap[record.get('_ref')]);
     },
 
