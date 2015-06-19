@@ -34,7 +34,8 @@ Ext.define('CustomApp', {
                     title: '<B>Tests Failed</B>',
                     emptyText: 'Choose Iteration to see data...',
                     storeConfig: {
-                        model: 'TestCase'
+                        model: 'TestCase',
+                        autoLoad: false
                     },
                     columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}]
                 },
@@ -44,7 +45,8 @@ Ext.define('CustomApp', {
                     title: '<B>Tests Not Run</B>',
                     emptyText: 'Choose Iteration to see data...',
                     storeConfig: {
-                        model: 'TestCase'
+                        model: 'TestCase',
+                        autoLoad: false
                     },
                     columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}]
                 },
@@ -54,7 +56,8 @@ Ext.define('CustomApp', {
                     title: '<B>Tests Passed</B>',
                     emptyText: 'Choose Iteration to see data...',
                     storeConfig: {
-                        model: 'TestCase'
+                        model: 'TestCase',
+                        autoLoad: false
                     },
                     columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}]
                 }
@@ -76,7 +79,7 @@ Ext.define('CustomApp', {
             },
             filters: this._getTestCaseFilters(projectRef),
             fetch: [
-                'Name','FormattedID','WorkProduct','ScheduleState','Iteration','Date','Verdict','Owner','ObjectID','Project'
+                'Name','FormattedID','WorkProduct','ScheduleState','Iteration','Date','LastVerdict','Owner','ObjectID','Project'
             ],
             limit: 200, //TODO: Increase this limit, but then load listener will be called, so need to wait until they are all loaded before compiling the results
             listeners: {
@@ -96,7 +99,27 @@ Ext.define('CustomApp', {
             iterationSummary: _.values(testCaseByIterationMap)
         };
 
+        this._updateSummaryStoreWithData(testSummaryData);
+        this._updateDetailStoresWithData(this.testCaseRecords);
+    },
+
+    _updateSummaryStoreWithData: function(testSummaryData) {
         this.down('#summaryGrid').getStore().loadRawData(testSummaryData);
+    },
+
+    _updateDetailStoresWithData: function(records) {
+        var testCasesByVerdictMap = _.reduce(records, function(testCasesByVerdict, testCase) {
+            var lastVerdict = testCase.get('LastVerdict') || 'NotRun';
+            if (!testCasesByVerdict[lastVerdict]) {
+                testCasesByVerdict[lastVerdict] = [];
+            }
+            testCasesByVerdict[lastVerdict].push(testCase);
+            return testCasesByVerdict;
+        }, {});
+
+        this.down('#testsFailedGrid').getStore().loadData(testCasesByVerdictMap.Fail || []);
+        this.down('#testsNotRunGrid').getStore().loadData(testCasesByVerdictMap.NotRun || []);
+        this.down('#testsPassedGrid').getStore().loadData(testCasesByVerdictMap.Pass || []);
     },
 
     _buildSummaryGridConfig: function() {
@@ -126,6 +149,7 @@ Ext.define('CustomApp', {
             itemId: 'summaryGrid',
             title: '<B>Iteration Summary</B>',
             store: testSummaryStore,
+            emptyText: 'No In-Progress test cases for this project',
             columns: {
                 items: [
                     {
