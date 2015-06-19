@@ -73,12 +73,12 @@ Ext.define('CustomApp', {
                 project: null
             },
             filters: [{
-                property : 'TestCase.Project',
+                property : 'Project',
                 operator : '=',
                 value: projectRef
             }],
             fetch: [
-                'Name','FormattedID','WorkProduct','Iteration','Date','Verdict','Tester','ObjectID','Project'
+                'Name','FormattedID','WorkProduct','Iteration','Date','Verdict','Owner','ObjectID','Project'
             ],
             limit: 200,
             listeners: {
