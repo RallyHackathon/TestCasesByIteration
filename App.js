@@ -37,7 +37,8 @@ Ext.define('CustomApp', {
                         model: 'TestCase',
                         autoLoad: false
                     },
-                    columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}]
+                    columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}],
+                    showPagingToolbar: false
                 },
                 {
                     xtype: 'rallygrid',
@@ -48,7 +49,8 @@ Ext.define('CustomApp', {
                         model: 'TestCase',
                         autoLoad: false
                     },
-                    columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}]
+                    columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}],
+                    showPagingToolbar: false
                 },
                 {
                     xtype: 'rallygrid',
@@ -59,7 +61,8 @@ Ext.define('CustomApp', {
                         model: 'TestCase',
                         autoLoad: false
                     },
-                    columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}]
+                    columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}],
+                    showPagingToolbar: false
                 }
             ]
         });
