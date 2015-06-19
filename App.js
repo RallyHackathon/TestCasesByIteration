@@ -92,9 +92,6 @@ Ext.define('CustomApp', {
             model: 'TestCase',
             autoLoad: true,
             storeId: 'TestResultStorer',
-            context: {
-                project: null
-            },
             filters: this._getTestCaseFilters(projectRef),
             fetch: [
                 'Name','FormattedID','WorkProduct','ScheduleState','Iteration','Date','LastVerdict','Owner','ObjectID','Project'
@@ -223,11 +220,6 @@ Ext.define('CustomApp', {
     _getTestCaseFilters: function(projectRef) {
         return [
             {
-                property : 'Project',
-                operator : '=',
-                value: projectRef
-            },
-            {
                 property : 'WorkProduct',
                 operator : '!=',
                 value: null
@@ -252,7 +244,7 @@ Ext.define('CustomApp', {
 
                 if (!results[iterationId]) {
                     results[iterationId] = iterationData;
-                } 
+                }
 
                 this._updateIterationVerdictCounts(testCase, results[iterationId]);
             }
@@ -261,7 +253,7 @@ Ext.define('CustomApp', {
     },
 
     _updateIterationVerdictCounts: function(testCase, iterationData) {
-        var lastVerdict = testCase.get('LastVerdict') || 'NotRun'; 
+        var lastVerdict = testCase.get('LastVerdict') || 'NotRun';
         if (!iterationData[lastVerdict]) {
             iterationData[lastVerdict] = 0;
         }

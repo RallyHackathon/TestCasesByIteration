@@ -101,9 +101,6 @@
             model: 'TestCase',
             autoLoad: true,
             storeId: 'TestResultStorer',
-            context: {
-                project: null
-            },
             filters: this._getTestCaseFilters(projectRef),
             fetch: [
                 'Name','FormattedID','WorkProduct','ScheduleState','Iteration','Date','LastVerdict','Owner','ObjectID','Project'
@@ -231,11 +228,6 @@
 
     _getTestCaseFilters: function(projectRef) {
         return [
-            {
-                property : 'Project',
-                operator : '=',
-                value: projectRef
-            },
             {
                 property : 'WorkProduct',
                 operator : '!=',
