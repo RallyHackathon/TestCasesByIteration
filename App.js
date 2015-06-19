@@ -9,6 +9,8 @@ Ext.define('CustomApp', {
                 {
                     xtype: 'rallyprojectcombobox',
                     itemId: 'projectCombo',
+                    width: 500,
+                    fieldLabel: 'Project',
                     value: Rally.util.Ref.getRelativeUri(Rally.environment.getContext().getScope().project._ref),
                     listeners: {
                         select: function(combo, records) {
@@ -72,15 +74,11 @@ Ext.define('CustomApp', {
             context: {
                 project: null
             },
-            filters: [{
-                property : 'Project',
-                operator : '=',
-                value: projectRef
-            }],
+            filters: this._getTestCaseFilters(projectRef),
             fetch: [
-                'Name','FormattedID','WorkProduct','Iteration','Date','Verdict','Owner','ObjectID','Project'
+                'Name','FormattedID','WorkProduct','ScheduleState','Iteration','Date','Verdict','Owner','ObjectID','Project'
             ],
-            limit: 200,
+            limit: 200, //TODO: Increase this limit, but then load listener will be called, so need to wait until they are all loaded before compiling the results
             listeners: {
                 load: function(store, data, success) {
                     this._onTestResultsLoaded(store, data);
@@ -154,30 +152,45 @@ Ext.define('CustomApp', {
         this.testCaseRecords = [];
 
         store.clearFilter(true);
-        store.filter({
-            property : 'Project',
-            operator : '=',
-            value: projectRef
-        });
+        store.filter(this._getTestCaseFilters(projectRef));
+    },
+
+    _getTestCaseFilters: function(projectRef) {
+        return [
+            {
+                property : 'Project',
+                operator : '=',
+                value: projectRef
+            },
+            {
+                property : 'WorkProduct',
+                operator : '!=',
+                value: null
+            }
+        ];
     },
 
     _groupResultsByIteration: function(testCaseRecords) {
         this.iterationIdMap = {};
         return _.reduce(testCaseRecords, function(results, testCase) {
-            var iterationData = testCase.get('WorkProduct').Iteration;
-            var iterationId = iterationData._ref;
+            if (testCase.get('WorkProduct') &&
+                testCase.get('WorkProduct').ScheduleState &&
+                testCase.get('WorkProduct').ScheduleState === 'In-Progress' &&
+                testCase.get('WorkProduct').Iteration) {
+                var iterationData = testCase.get('WorkProduct').Iteration;
+                var iterationId = iterationData._ref;
 
-            if (!this.iterationIdMap[iterationId]) {
-                this.iterationIdMap[iterationId] = iterationData;
+                if (!this.iterationIdMap[iterationId]) {
+                    this.iterationIdMap[iterationId] = iterationData;
+                }
+
+                if (!results[iterationId]) {
+                    results[iterationId] = iterationData;
+                }
             }
-
-            if (!results[iterationId]) {
-                results[iterationId] = iterationData;
-            }
-
             return results;
         }, {}, this);
-    } 
+    }
 });
 
 
