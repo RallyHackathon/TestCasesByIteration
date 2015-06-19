@@ -2,86 +2,89 @@ Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
     testCaseRecords: [],
+    gridMargins: '10 5 10 5',
     launch: function() {
         var app = this;
-        var toolbar = Ext.create('Ext.panel.Panel',{
-            items: [
-                {
-                    xtype: 'rallyprojectcombobox',
-                    itemId: 'projectCombo',
-                    width: 500,
-                    fieldLabel: 'Project',
-                    value: Rally.util.Ref.getRelativeUri(Rally.environment.getContext().getScope().project._ref),
-                    listeners: {
-                        select: function(combo, records) {
-                            this._updateTestResultData(records[0].get('_ref'));
-                        },
-                        scope: app
-                    }
-                }
-            ]
+        // var toolbar = Ext.create('Ext.panel.Panel',{
+        //     items: [
+        //         {
+        //             xtype: 'rallyprojectcombobox',
+        //             itemId: 'projectCombo',
+        //             width: 500,
+        //             fieldLabel: 'Project',
+        //             value: Rally.util.Ref.getRelativeUri(Rally.environment.getContext().getScope().project._ref),
+        //             listeners: {
+        //                 select: function(combo, records) {
+        //                     this._updateTestResultData(records[0].get('_ref'));
+        //                 },
+        //                 scope: app
+        //             }
+        //         }
+        //     ]
+        // });
+        // this.add(toolbar);
+        this.add(this._buildSummaryGridConfig());
+        
+        this.add({
+            xtype: 'rallygrid',
+            itemId: 'testsFailedGrid',
+            title: '<B>Tests Failed</B>',
+            emptyText: 'No Failed Test Cases',
+            storeConfig: {
+                model: 'TestCase',
+                autoLoad: false
+            },
+            columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}],
+            margin: this.gridMargins,
+            showPagingToolbar: false
         });
-        this.add(toolbar);
+        
+        this.add({
+            xtype: 'rallygrid',
+            itemId: 'testsBlockedGrid',
+            title: '<B>Tests Blocked</B>',
+            emptyText: 'No Blocked Test Cases',
+            storeConfig: {
+                model: 'TestCase',
+                autoLoad: false
+            },
+            columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}],
+            margin: this.gridMargins,
+            showPagingToolbar: false
+        });
 
-        var summaryGridConfig = this._buildSummaryGridConfig();
-
-        this.testStatusSummary = Ext.create('Ext.panel.Panel', {
-            items: [
-                summaryGridConfig,
-                {
-                    xtype: 'rallygrid',
-                    itemId: 'testsFailedGrid',
-                    title: '<B>Tests Failed</B>',
-                    emptyText: 'No Failed Test Cases',
-                    storeConfig: {
-                        model: 'TestCase',
-                        autoLoad: false
-                    },
-                    columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}],
-                    showPagingToolbar: false
-                },
-                {
-                    xtype: 'rallygrid',
-                    itemId: 'testsBlockedGrid',
-                    title: '<B>Tests Blocked</B>',
-                    emptyText: 'No Blocked Test Cases',
-                    storeConfig: {
-                        model: 'TestCase',
-                        autoLoad: false
-                    },
-                    columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}],
-                    showPagingToolbar: false
-                },
-                {
-                    xtype: 'rallygrid',
-                    itemId: 'testsNotRunGrid',
-                    title: '<B>Tests Not Run</B>',
-                    emptyText: 'No Test Cases that have not been run',
-                    storeConfig: {
-                        model: 'TestCase',
-                        autoLoad: false
-                    },
-                    columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}],
-                    showPagingToolbar: false
-                },
-                {
-                    xtype: 'rallygrid',
-                    itemId: 'testsPassedGrid',
-                    title: '<B>Tests Passed</B>',
-                    emptyText: 'No Passing Test Cases',
-                    storeConfig: {
-                        model: 'TestCase',
-                        autoLoad: false
-                    },
-                    columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}],
-                    showPagingToolbar: false
-                }
-            ]
+        this.add({
+            xtype: 'rallygrid',
+            itemId: 'testsNotRunGrid',
+            title: '<B>Tests Not Run</B>',
+            emptyText: 'No Test Cases that have not been run',
+            storeConfig: {
+                model: 'TestCase',
+                autoLoad: false
+            },
+            columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}],
+            margin: this.gridMargins,
+            showPagingToolbar: false
+        });
+        this.add({
+            xtype: 'rallygrid',
+            itemId: 'testsPassedGrid',
+            title: '<B>Tests Passed</B>',
+            emptyText: 'No Passing Test Cases',
+            storeConfig: {
+                model: 'TestCase',
+                autoLoad: false
+            },
+            columnCfgs: ['FormattedID', 'Name', {text: 'Tester', dataIndex: 'Owner'}],
+            margin: this.gridMargins,
+            showPagingToolbar: false
         });
 
         this.add(this.testStatusSummary);
 
-        this._getTestResultData(toolbar.down('#projectCombo').getValue());
+        //this._getTestResultData(toolbar.down('#projectCombo').getValue());
+        var currentProjectRef = Rally.util.Ref.getRelativeUri(Rally.environment.getContext().getScope().project._ref);
+        this._getTestResultData(currentProjectRef);
     },
 
     _getTestResultData: function(projectRef) {
@@ -142,7 +145,7 @@ Ext.define('CustomApp', {
                 {name: 'Pass', type: 'number'},
                 {name: 'Fail', type: 'number'},
                 {name: 'NotRun', type: 'number'},
-                {name: 'Blocked', type: 'number'},
+                {name: 'Blocked', type: 'number'}
             ]
         });
 
@@ -166,6 +169,8 @@ Ext.define('CustomApp', {
             title: '<B>Iteration Summary</B>',
             store: testSummaryStore,
             emptyText: 'No In-Progress test cases for this project',
+            columnLines: false,
+            margin: this.gridMargins,
             columns: {
                 items: [
                 
@@ -199,7 +204,6 @@ Ext.define('CustomApp', {
                 cellclick: this._onIterationClicked,
                 scope: this
             },
-            columnLines: true,
             enableEditing: true
         };
     },

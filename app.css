@@ -1,3 +1,7 @@
 .app {
-     /* Add app styles here */
+     background-color: gray;
+}
+
+.x-column-header {
+	background-color: white;
 }
