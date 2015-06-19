@@ -32,7 +32,7 @@ Ext.define('CustomApp', {
                     xtype: 'rallygrid',
                     itemId: 'testsFailedGrid',
                     title: '<B>Tests Failed</B>',
-                    emptyText: 'Choose Iteration to see data...',
+                    emptyText: 'No Failed Test Cases',
                     storeConfig: {
                         model: 'TestCase',
                         autoLoad: false
@@ -43,7 +43,7 @@ Ext.define('CustomApp', {
                     xtype: 'rallygrid',
                     itemId: 'testsNotRunGrid',
                     title: '<B>Tests Not Run</B>',
-                    emptyText: 'Choose Iteration to see data...',
+                    emptyText: 'No Test Cases that have not been run',
                     storeConfig: {
                         model: 'TestCase',
                         autoLoad: false
@@ -54,7 +54,7 @@ Ext.define('CustomApp', {
                     xtype: 'rallygrid',
                     itemId: 'testsPassedGrid',
                     title: '<B>Tests Passed</B>',
-                    emptyText: 'Choose Iteration to see data...',
+                    emptyText: 'No Passing Test Cases',
                     storeConfig: {
                         model: 'TestCase',
                         autoLoad: false
@@ -99,11 +99,6 @@ Ext.define('CustomApp', {
             iterationSummary: _.values(testCaseByIterationMap)
         };
 
-        this._updateSummaryStoreWithData(testSummaryData);
-        this._updateDetailStoresWithData(this.testCaseRecords);
-    },
-
-    _updateSummaryStoreWithData: function(testSummaryData) {
         this.down('#summaryGrid').getStore().loadRawData(testSummaryData);
     },
 
@@ -126,7 +121,8 @@ Ext.define('CustomApp', {
         var iterationSummaryModel = Ext.define('IterationSummary', {
             extend: 'Ext.data.Model',
             fields: [
-                {name: 'Name',  type: 'string'}
+                {name: 'Name',  type: 'string'},
+                {name: '_ref',  type: 'string'}
             ]
         });
 
@@ -162,13 +158,17 @@ Ext.define('CustomApp', {
                 }
             },
             listeners: {
-                cellclick: function(){
-                    console.log('cell clicked!');
-                }
+                cellclick: this._onIterationClicked,
+                scope: this
             },
             columnLines: true,
             enableEditing: true
         };
+    },
+
+    _onIterationClicked: function(grid, td, cellIndex, record, tr, rowIndex, e, eOpts) {
+        debugger;
+        this._updateDetailStoresWithData(this.iterationTestCaseMap[record.get('_ref')]);
     },
 
     _updateTestResultData: function(projectRef) {
@@ -195,7 +195,7 @@ Ext.define('CustomApp', {
     },
 
     _groupResultsByIteration: function(testCaseRecords) {
-        this.iterationIdMap = {};
+        this.iterationTestCaseMap = {};
         return _.reduce(testCaseRecords, function(results, testCase) {
             if (testCase.get('WorkProduct') &&
                 testCase.get('WorkProduct').ScheduleState &&
@@ -204,9 +204,10 @@ Ext.define('CustomApp', {
                 var iterationData = testCase.get('WorkProduct').Iteration;
                 var iterationId = iterationData._ref;
 
-                if (!this.iterationIdMap[iterationId]) {
-                    this.iterationIdMap[iterationId] = iterationData;
+                if (!this.iterationTestCaseMap[iterationId]) {
+                    this.iterationTestCaseMap[iterationId] = [];
                 }
+                this.iterationTestCaseMap[iterationId].push(testCase);
 
                 if (!results[iterationId]) {
                     results[iterationId] = iterationData;

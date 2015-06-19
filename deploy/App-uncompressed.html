@@ -41,7 +41,7 @@
                     xtype: 'rallygrid',
                     itemId: 'testsFailedGrid',
                     title: '<B>Tests Failed</B>',
-                    emptyText: 'Choose Iteration to see data...',
+                    emptyText: 'No Failed Test Cases',
                     storeConfig: {
                         model: 'TestCase',
                         autoLoad: false
@@ -52,7 +52,7 @@
                     xtype: 'rallygrid',
                     itemId: 'testsNotRunGrid',
                     title: '<B>Tests Not Run</B>',
-                    emptyText: 'Choose Iteration to see data...',
+                    emptyText: 'No Test Cases that have not been run',
                     storeConfig: {
                         model: 'TestCase',
                         autoLoad: false
@@ -63,7 +63,7 @@
                     xtype: 'rallygrid',
                     itemId: 'testsPassedGrid',
                     title: '<B>Tests Passed</B>',
-                    emptyText: 'Choose Iteration to see data...',
+                    emptyText: 'No Passing Test Cases',
                     storeConfig: {
                         model: 'TestCase',
                         autoLoad: false
@@ -74,6 +74,7 @@
         });
 
         this.add(this.testStatusSummary);
+        debugger;
 
         this._getTestResultData(toolbar.down('#projectCombo').getValue());
     },
@@ -117,7 +118,7 @@
     },
 
     _updateDetailStoresWithData: function(records) {
-        _.reduce(records, function(testCasesByVerdict, testCase) {
+        var testCasesByVerdictMap = _.reduce(records, function(testCasesByVerdict, testCase) {
             var lastVerdict = testCase.get('LastVerdict') || 'NotRun';
             if (!testCasesByVerdict[lastVerdict]) {
                 testCasesByVerdict[lastVerdict] = [];
@@ -126,9 +127,9 @@
             return testCasesByVerdict;
         }, {});
 
-        this.down('#testsFailedGrid').getStore().loadData(testCasesByVerdict.Failed);
-        this.down('#testsNotRunGrid').getStore().loadData(testCasesByVerdict.NotRun);
-        this.down('#testsPassedGrid').getStore().loadData(testCasesByVerdict.Passed);
+        this.down('#testsFailedGrid').getStore().loadData(testCasesByVerdictMap.Fail || []);
+        this.down('#testsNotRunGrid').getStore().loadData(testCasesByVerdictMap.NotRun || []);
+        this.down('#testsPassedGrid').getStore().loadData(testCasesByVerdictMap.Pass || []);
     },
 
     _buildSummaryGridConfig: function() {
@@ -158,6 +159,7 @@
             itemId: 'summaryGrid',
             title: '<B>Iteration Summary</B>',
             store: testSummaryStore,
+            emptyText: 'No In-Progress test cases for this project',
             columns: {
                 items: [
                     {
